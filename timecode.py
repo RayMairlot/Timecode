@@ -110,6 +110,35 @@ def formatTimecode():
 
 
 
+def toggle3DViewLabel(self, context):
+    
+    global handle    
+    preferences = bpy.context.user_preferences.addons['timecode'].preferences
+
+    if preferences.display_in_3d_view:
+
+        handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
+        
+    elif preferences.display_in_3d_view == False:
+    
+        bpy.types.SpaceView3D.draw_handler_remove(handle, 'WINDOW')
+
+
+
+def toggleTimelineHeaderUI(self, context):
+    
+    preferences = bpy.context.user_preferences.addons['timecode'].preferences
+    
+    if preferences.display_in_header:
+    
+        bpy.types.TIME_HT_header.append(TimecodeMenu)
+        
+    elif preferences.display_in_header == False:
+        
+        bpy.types.TIME_HT_header.remove(TimecodeMenu)
+        
+        
+        
 def setFrame(self, context):
                 
     timecode = context.scene.timecode
@@ -269,27 +298,58 @@ def TimecodeMenu(self, context):
     
 
 
+class TimecodePreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__  
+    
+    display_in_header = bpy.props.BoolProperty(name="Timeline header", default=True, description="Display the timecode UI in the Timeline header", update=toggleTimelineHeaderUI)
+    display_in_3d_view = bpy.props.BoolProperty(name="3D View", default=True, description="Display the timecode in the 3D View, above the selected object's name", update=toggle3DViewLabel)
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, "display_in_3d_view")
+        row.prop(self, "display_in_header")
+
+
+
 def register():
     global handle
-    handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
-    
-    bpy.app.handlers.frame_change_post.append(timecodeUpdate)
+
     bpy.utils.register_class(SetTimecodeOperator)
     bpy.utils.register_class(TimecodeProperties)
+    bpy.utils.register_class(TimecodePreferences)
     bpy.types.Scene.timecode = bpy.props.PointerProperty(type=TimecodeProperties)
-    bpy.types.TIME_HT_header.append(TimecodeMenu) 
+    bpy.app.handlers.frame_change_post.append(timecodeUpdate)
+    
+    preferences = bpy.context.user_preferences.addons['timecode'].preferences
+    
+    if preferences.display_in_3d_view:
+
+        handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
+    
+    if preferences.display_in_header:
+    
+        bpy.types.TIME_HT_header.append(TimecodeMenu) 
 
 
 
 def unregister():
     
-    bpy.types.SpaceView3D.draw_handler_remove(handle, 'WINDOW')
+    preferences = bpy.context.user_preferences.addons['timecode'].preferences
     
-    bpy.app.handlers.frame_change_post.remove(timecodeUpdate)
+    if preferences.display_in_3d_view:
+    
+        bpy.types.SpaceView3D.draw_handler_remove(handle, 'WINDOW')
+        
+    if preferences.display_in_header:
+    
+        bpy.types.TIME_HT_header.remove(TimecodeMenu) 
+        
     bpy.utils.unregister_class(SetTimecodeOperator)
     bpy.utils.unregister_class(TimecodeProperties)
-    bpy.types.TIME_HT_header.remove(TimecodeMenu) 
-
+    bpy.utils.unregister_class(TimecodePreferences)    
+    bpy.app.handlers.frame_change_post.remove(timecodeUpdate)
+        
 
 
 if __name__ == "__main__":
