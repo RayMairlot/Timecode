@@ -11,8 +11,12 @@ bl_info = {
 
 
 import bpy
+import blf
+import bgl
 from bpy.app.handlers import persistent
 
+
+handle = None
 
 
 def containsLetters(itemList):
@@ -203,6 +207,26 @@ def timecodeUpdate(scene):
 
 
 
+def drawTimecode():
+    
+    timecode = bpy.context.scene.timecode
+    
+    pixelSize = bpy.context.user_preferences.system.pixel_size
+    dpi = bpy.context.user_preferences.system.dpi
+    dpiFac = pixelSize * dpi
+        
+    xPosition = 69 + ((dpiFac - 70) / 4)
+    
+    #Default dpi will make y = 25
+    yPosition = dpiFac / 2.88
+    
+    blf.position(0, xPosition, yPosition, 0)
+    blf.size(0, 11, int(dpiFac))
+    bgl.glColor3f(1.0, 1.0, 1.0)
+    blf.draw(0, timecode.hours + ':' + timecode.minutes + ':' + timecode.seconds + ':' + timecode.frames)
+
+
+
 def TimecodeMenu(self, context):
                 
     layout = self.layout
@@ -246,6 +270,8 @@ def TimecodeMenu(self, context):
 
 
 def register():
+    global handle
+    handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
     
     bpy.app.handlers.frame_change_post.append(timecodeUpdate)
     bpy.utils.register_class(SetTimecodeOperator)
@@ -256,6 +282,8 @@ def register():
 
 
 def unregister():
+    
+    bpy.types.SpaceView3D.draw_handler_remove(handle, 'WINDOW')
     
     bpy.app.handlers.frame_change_post.remove(timecodeUpdate)
     bpy.utils.unregister_class(SetTimecodeOperator)
