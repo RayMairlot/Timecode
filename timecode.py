@@ -320,16 +320,9 @@ def register():
     bpy.utils.register_class(TimecodePreferences)
     bpy.types.Scene.timecode = bpy.props.PointerProperty(type=TimecodeProperties)
     bpy.app.handlers.frame_change_post.append(timecodeUpdate)
-    
-    preferences = bpy.context.user_preferences.addons['timecode'].preferences
-    
-    if preferences.display_in_3d_view:
 
-        handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
-    
-    if preferences.display_in_header:
-    
-        bpy.types.TIME_HT_header.append(TimecodeMenu) 
+    handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
+    bpy.types.TIME_HT_header.append(TimecodeMenu) 
 
 
 
