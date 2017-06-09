@@ -28,10 +28,13 @@ def containsLetters(itemList):
 
 
 def calculateTimecode():
-        
+
     fps = bpy.context.scene.render.fps
     timecode = bpy.context.scene.timecode
     totalFrames = bpy.context.scene.frame_current
+
+    #Stops all 4 time property's update functions from updating. Only 1 needs to.
+    timecode.updating = True
             
     hours = int((totalFrames / fps) / 3600)
     
@@ -65,6 +68,9 @@ def calculateTimecode():
     else:
         
         timecode.seconds = "00"   
+
+    #Now that the other property's update functions have been skipped, re-enable them and let 'frames' trigger the update once.
+    timecode.updating = False
         
     frames = totalFrames
     
@@ -73,12 +79,12 @@ def calculateTimecode():
         
     else:
         
-        timecode.frames = "00"  
-        
+        timecode.frames = "00"
+
 
 
 def formatTimecode():
-    
+
     timecode = bpy.context.scene.timecode
     
     timecode.hours = timecode.hours.zfill(2)
@@ -140,14 +146,14 @@ def toggleTimelineHeaderUI(self, context):
         
         
 def setFrame(self, context):
-                
+
     timecode = context.scene.timecode
                 
     #Don't trigger this function again when values are being updated by this function or if letters have been entered
     if not timecode.updating:
-        
+
         stringInputs = [timecode.hours, timecode.minutes, timecode.seconds, timecode.frames]
-        
+
         if not containsLetters(stringInputs):
 
             fps = context.scene.render.fps
