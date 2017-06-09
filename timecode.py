@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Timecode",
     "author": "Ray Mairlot",
-    "version": (1, 1, 0),
+    "version": (1, 1, 5),
     "blender": (2, 78, 0),
     "location": "Timeline Header or Space> Set timecode",
     "description": "Allows viewing and setting the current frame via a timecode (HH:MM:SS:FF)",
