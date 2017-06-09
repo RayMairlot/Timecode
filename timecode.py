@@ -110,9 +110,9 @@ def formatTimecode():
         
         timecode.seconds = str(59)
         
-    if int(timecode.frames) > fps:
+    if int(timecode.frames) > (fps - 1):
         
-        timecode.frames = str(fps - 1)                  
+        timecode.frames = str(fps - 1)
 
 
 
