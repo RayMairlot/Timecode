@@ -71,7 +71,7 @@ def calculateTimecode():
 
     #Now that the other property's update functions have been skipped, re-enable them and let 'frames' trigger the update once.
     timecode.updating = False
-        
+
     frames = totalFrames
     
     if frames >= 1:          
@@ -156,6 +156,11 @@ def setFrame(self, context):
 
         if not containsLetters(stringInputs):
 
+            #Prevents infite loop by not re-triggering this function when performing 'zfill' on properties
+            timecode.updating = True
+            formatTimecode()
+            timecode.updating = False
+
             fps = context.scene.render.fps
             hours = int(timecode.hours)
             minutes = int(timecode.minutes)
@@ -165,7 +170,6 @@ def setFrame(self, context):
             currentFrame = (hours * fps * 3600) + (minutes * fps * 60) + (seconds * fps) + frames
             
             #Prevent infite loop by not triggering frame_change_post when setting the new frame
-            #Also prevents infite loop by not re-triggering this function when performing 'zfill' on properties
             timecode.updating = True
             formatTimecode()            
             bpy.context.scene.frame_set(currentFrame)
