@@ -149,7 +149,7 @@ def setFrame(self, context):
         stringInputs = [timecode.hours, timecode.minutes, timecode.seconds, timecode.frames]
         
         if not containsLetters(stringInputs):
-            
+
             fps = context.scene.render.fps
             hours = int(timecode.hours)
             minutes = int(timecode.minutes)
@@ -166,11 +166,10 @@ def setFrame(self, context):
             timecode.updating = False
             
         else:
-
-            timecode.updating = True
             
+            #If letters have been entered just ignore it by recalculating what the timecode should be
+            timecode.updating = True
             calculateTimecode()
-                    
             timecode.updating = False
         
 
