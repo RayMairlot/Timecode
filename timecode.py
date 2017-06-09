@@ -166,7 +166,7 @@ def setFrame(self, context):
             timecode.updating = False
             
         else:
-            
+
             timecode.updating = True
             
             calculateTimecode()
@@ -185,8 +185,10 @@ class TimecodeProperties(bpy.types.PropertyGroup):
 
     frames = bpy.props.StringProperty(name="Frames", description="Frames", default="00", update=setFrame)
     
-    updating = bpy.props.BoolProperty(name="Updating", default=False)   
-        
+    updating = bpy.props.BoolProperty(name="Updating", default=False)
+
+    rendering = bpy.props.BoolProperty(name="Rendering", description="Keeps track of when the files is being rendered to prevent frame_change_post handler from running", default=False)
+
 
 
 class SetTimecodeOperator(bpy.types.Operator):
@@ -222,11 +224,26 @@ class SetTimecodeOperator(bpy.types.Operator):
 
 @persistent
 def timecodeUpdate(scene):
-            
+
     #Prevent infinite loop by not re-triggering when the current frame is being set by 'setFrame'
-    if not scene.timecode.updating:
+    #Is also prevented from running when rendering. See: https://github.com/RayMairlot/Timecode/issues/2
+    if not scene.timecode.updating and not scene.timecode.rendering:
                     
         calculateTimecode()
+
+
+
+@persistent
+def startedRendering(scene):
+
+    bpy.context.scene.timecode.rendering = True
+
+
+
+@persistent
+def finishedRendering(scene):
+
+    bpy.context.scene.timecode.rendering = False
 
                     
 
@@ -320,6 +337,8 @@ def register():
     bpy.utils.register_class(TimecodePreferences)
     bpy.types.Scene.timecode = bpy.props.PointerProperty(type=TimecodeProperties)
     bpy.app.handlers.frame_change_post.append(timecodeUpdate)
+    bpy.app.handlers.render_pre.append(startedRendering)
+    bpy.app.handlers.render_post.append(finishedRendering)
 
     handle = bpy.types.SpaceView3D.draw_handler_add(drawTimecode, (), 'WINDOW', 'POST_PIXEL')
     bpy.types.TIME_HT_header.append(TimecodeMenu) 
@@ -342,7 +361,9 @@ def unregister():
     bpy.utils.unregister_class(TimecodeProperties)
     bpy.utils.unregister_class(TimecodePreferences)    
     bpy.app.handlers.frame_change_post.remove(timecodeUpdate)
-        
+    bpy.app.handlers.render_pre.remove(startedRendering)
+    bpy.app.handlers.render_post.remove(finishedRendering)
+
 
 
 if __name__ == "__main__":
